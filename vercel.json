@@ -1,42 +1,45 @@
 {
-    "$schema": "https://openapi.vercel.sh/vercel.json",
-    "services": {
-        "backend": {
-            "root": "backend",
-            "framework": "express""framework": "express",
-            "buildCommand": "npm run build"
-        },
-        "frontend": {
-            "root": "frontend",
-            "framework": "vite",
-            "bindings": [
-                {
-                    "type": "service",
-                    "service": "backend",
-                    "format": "url",
-                    "env": "BACKEND_URL"
-                }
-            ]
-        }
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "services": {
+    "backend": {
+      "root": "backend",
+      "framework": "express",
+      "installCommand": "npm install",
+      "buildCommand": "npm run build"
     },
-    "rewrites": [
+    "frontend": {
+      "root": "frontend",
+      "framework": "vite",
+      "installCommand": "npm install",
+      "buildCommand": "npm run build",
+      "bindings": [
         {
-            "source": "/api",
-            "destination": {
-                "service": "backend"
-            }
-        },
-        {
-            "source": "/api/(.*)",
-            "destination": {
-                "service": "backend"
-            }
-        },
-        {
-            "source": "/(.*)",
-            "destination": {
-                "service": "frontend"
-            }
+          "type": "service",
+          "service": "backend",
+          "format": "url",
+          "env": "BACKEND_URL"
         }
-    ]
+      ]
+    }
+  },
+  "rewrites": [
+    {
+      "source": "/api",
+      "destination": {
+        "service": "backend"
+      }
+    },
+    {
+      "source": "/api/(.*)",
+      "destination": {
+        "service": "backend"
+      }
+    },
+    {
+      "source": "/(.*)",
+      "destination": {
+        "service": "frontend"
+      }
+    }
+  ]
 }

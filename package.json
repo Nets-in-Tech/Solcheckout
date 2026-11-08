@@ -1,0 +1,12 @@
+{
+  "name": "solcheckout-monorepo",
+  "version": "1.0.0",
+  "private": true,
+  "workspaces": [
+    "backend",
+    "frontend"
+  ],
+  "dependencies": {
+    "express": "^4.21.2"
+  }
+}
