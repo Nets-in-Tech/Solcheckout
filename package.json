@@ -1,0 +1,13 @@
+{
+  "name": "solana-pay-monorepo",
+  "version": "1.0.0",
+  "private": true,
+  "workspaces": [
+    "frontend",
+    "backend"
+  ],
+  "dependencies": {
+    "express": "^4.19.2",
+    "@solana/pay": "^0.1.1"
+  }
+}
