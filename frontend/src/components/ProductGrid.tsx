@@ -10,7 +10,7 @@ interface ProductGridProps {
   onSelectCategory: (category: string) => void;
 }
 
-const CATEGORIES = ['All', 'Specialty Coffee', 'Leather Goods', 'Brewing Gear'];
+const CATEGORIES = ['All', 'Specialty Coffee', 'Handcrafted Leather', 'Brewing Gear'];
 
 export const ProductGrid: React.FC<ProductGridProps> = ({
   products,
@@ -21,7 +21,10 @@ export const ProductGrid: React.FC<ProductGridProps> = ({
   const [searchQuery, setSearchQuery] = useState('');
 
   const filtered = products.filter((p) => {
-    const matchesCategory = selectedCategory === 'All' || p.category === selectedCategory;
+    const matchesCategory =
+      selectedCategory === 'All' ||
+      p.category === selectedCategory ||
+      (selectedCategory === 'Handcrafted Leather' && (p.category === 'Leather Goods' || p.category === 'Handcrafted Leather'));
     const matchesSearch =
       p.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
       p.description.toLowerCase().includes(searchQuery.toLowerCase());
