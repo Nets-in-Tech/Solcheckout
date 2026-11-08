@@ -8,10 +8,31 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+    <script>
+      window.global = window;
+      if (typeof window.Buffer === 'undefined') {
+        window.Buffer = {
+          from: function(data, encoding) {
+            if (typeof data === 'string') {
+              if (encoding === 'base64') {
+                var binary = window.atob(data);
+                var bytes = new Uint8Array(binary.length);
+                for (var i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
+                return bytes;
+              }
+              return new TextEncoder().encode(data);
+            }
+            if (data instanceof Uint8Array) return data;
+            if (Array.isArray(data)) return new Uint8Array(data);
+            return new Uint8Array(data || []);
+          },
+          isBuffer: function(obj) { return obj instanceof Uint8Array; }
+        };
+      }
+    </script>
   </head>
   <body class="bg-[#0b0c10] text-gray-100 antialiased min-h-screen selection:bg-[#9945FF] selection:text-white">
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>
-

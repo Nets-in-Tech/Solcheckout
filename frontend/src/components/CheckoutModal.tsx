@@ -14,7 +14,6 @@ import {
 } from 'lucide-react';
 import { useCart } from '../context/CartContext.tsx';
 import { Order } from '../types/index.ts';
-import { Transaction } from '@solana/web3.js';
 
 interface CheckoutModalProps {
   isOpen: boolean;
@@ -183,6 +182,7 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({ isOpen, onClose, o
       for (let i = 0; i < binaryString.length; i++) {
         bytes[i] = binaryString.charCodeAt(i);
       }
+      const { Transaction } = await import('@solana/web3.js');
       const transaction = Transaction.from(bytes);
 
       await solana.signAndSendTransaction(transaction);

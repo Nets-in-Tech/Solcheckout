@@ -7,6 +7,15 @@
     "frontend"
   ],
   "dependencies": {
-    "express": "^4.21.2"
+    "@solana/pay": "^0.2.5",
+    "@solana/web3.js": "^1.95.8",
+    "bignumber.js": "^9.1.2",
+    "buffer": "^6.0.3",
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.7",
+    "express": "^4.21.2",
+    "pg": "^8.13.1",
+    "redis": "^4.7.0",
+    "uuid": "^10.0.0"
   }
 }
