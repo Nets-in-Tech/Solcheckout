@@ -73,4 +73,9 @@ if (process.env.VERCEL !== '1') {
   })();
 }
 
+// Export for both ESM and CommonJS runtimes
 export default app;
+if (typeof module !== 'undefined' && module.exports) {
+  module.exports = app;
+  (module.exports as any).default = app;
+}
