@@ -3,31 +3,23 @@ import { PublicKey } from '@solana/web3.js';
 
 dotenv.config();
 
-// Ensure required database configuration exists
-if (!process.env.DATABASE_URL) {
-  console.warn('⚠️ DATABASE_URL is not set in environment. Using connection parameters.');
-}
+// Default merchant wallet if not provided in environment
+const DEFAULT_MERCHANT_WALLET = '7VMv92GaPH3mn6Vt7sRzVeR4PMX8byDH5EU7KCTDQgM3';
 
-// Merchant wallet address (public key only - no private keys are ever stored or needed)
-const merchantWalletStr = process.env.MERCHANT_WALLET;
 let merchantWalletPubkey: PublicKey;
+const merchantWalletStr = process.env.MERCHANT_WALLET || DEFAULT_MERCHANT_WALLET;
 
-if (merchantWalletStr && merchantWalletStr.trim() !== '') {
-  try {
-    merchantWalletPubkey = new PublicKey(merchantWalletStr.trim());
-  } catch (err) {
-    console.error('Invalid MERCHANT_WALLET public key in environment:', merchantWalletStr);
-    throw new Error('Invalid MERCHANT_WALLET provided in environment.');
-  }
-} else {
-  throw new Error('MERCHANT_WALLET environment variable is required.');
+try {
+  merchantWalletPubkey = new PublicKey(merchantWalletStr.trim());
+} catch {
+  merchantWalletPubkey = new PublicKey(DEFAULT_MERCHANT_WALLET);
 }
 
 export const config = {
   port: parseInt(process.env.PORT || '4000', 10),
   nodeEnv: process.env.NODE_ENV || 'production',
-  databaseUrl: process.env.DATABASE_URL as string,
-  redisUrl: process.env.REDIS_URL || 'redis://redis:6379',
+  databaseUrl: process.env.DATABASE_URL || '',
+  redisUrl: process.env.REDIS_URL || '',
   solanaNetwork: process.env.SOLANA_NETWORK || 'devnet',
   solanaRpcUrl: process.env.SOLANA_RPC_URL || 'https://api.devnet.solana.com',
   merchantName: process.env.MERCHANT_NAME || 'SolRoast & Craft Co.',

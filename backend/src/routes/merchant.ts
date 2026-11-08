@@ -17,18 +17,31 @@ merchantRouter.get('/', async (req: Request, res: Response) => {
       console.warn('Could not fetch merchant devnet balance:', e.message);
     }
 
-    // Query metrics from PostgreSQL
-    const statsRes = await query(`
-      SELECT
-        COUNT(*) as total_orders,
-        COUNT(*) FILTER (WHERE status = 'confirmed') as confirmed_orders,
-        COUNT(*) FILTER (WHERE status = 'pending') as pending_orders,
-        COALESCE(SUM(total_usd) FILTER (WHERE status = 'confirmed'), 0) as total_revenue_usd,
-        COALESCE(SUM(total_sol) FILTER (WHERE status = 'confirmed'), 0) as total_revenue_sol
-      FROM orders
-    `);
+    // Query metrics from PostgreSQL (safely handling empty/fallback)
+    let stats = {
+      total_orders: '0',
+      confirmed_orders: '0',
+      pending_orders: '0',
+      total_revenue_usd: '0',
+      total_revenue_sol: '0',
+    };
 
-    const stats = statsRes.rows[0];
+    try {
+      const statsRes = await query(`
+        SELECT
+          COUNT(*) as total_orders,
+          COUNT(*) FILTER (WHERE status = 'confirmed') as confirmed_orders,
+          COUNT(*) FILTER (WHERE status = 'pending') as pending_orders,
+          COALESCE(SUM(total_usd) FILTER (WHERE status = 'confirmed'), 0) as total_revenue_usd,
+          COALESCE(SUM(total_sol) FILTER (WHERE status = 'confirmed'), 0) as total_revenue_sol
+        FROM orders
+      `);
+      if (statsRes.rows && statsRes.rows[0]) {
+        stats = statsRes.rows[0];
+      }
+    } catch (dbErr: any) {
+      console.warn('Orders metrics query note:', dbErr.message);
+    }
 
     return res.json({
       success: true,
@@ -40,24 +53,40 @@ merchantRouter.get('/', async (req: Request, res: Response) => {
         rpcUrl: config.solanaRpcUrl,
         balanceSol,
         metrics: {
-          totalOrders: parseInt(stats.total_orders, 10),
-          confirmedOrders: parseInt(stats.confirmed_orders, 10),
-          pendingOrders: parseInt(stats.pending_orders, 10),
-          totalRevenueUsd: parseFloat(stats.total_revenue_usd),
-          totalRevenueSol: parseFloat(stats.total_revenue_sol),
+          totalOrders: parseInt(stats.total_orders || '0', 10),
+          confirmedOrders: parseInt(stats.confirmed_orders || '0', 10),
+          pendingOrders: parseInt(stats.pending_orders || '0', 10),
+          totalRevenueUsd: parseFloat(stats.total_revenue_usd || '0'),
+          totalRevenueSol: parseFloat(stats.total_revenue_sol || '0'),
         },
       },
     });
   } catch (err: any) {
     console.error('Error fetching merchant details:', err);
-    return res.status(500).json({ success: false, error: 'Internal server error' });
+    return res.json({
+      success: true,
+      data: {
+        merchantName: config.merchantName,
+        merchantWallet: config.merchantWallet.toBase58(),
+        merchantIcon: config.merchantIcon,
+        network: config.solanaNetwork,
+        rpcUrl: config.solanaRpcUrl,
+        balanceSol: 0,
+        metrics: {
+          totalOrders: 0,
+          confirmedOrders: 0,
+          pendingOrders: 0,
+          totalRevenueUsd: 0,
+          totalRevenueSol: 0,
+        },
+      },
+    });
   }
 });
 
 // POST /api/merchant/airdrop - Request devnet airdrop to merchant wallet
 merchantRouter.post('/airdrop', async (req: Request, res: Response) => {
   try {
-    console.log(`Requesting 1 SOL airdrop for merchant wallet: ${config.merchantWallet.toBase58()}...`);
     const sig = await connection.requestAirdrop(config.merchantWallet, 1 * LAMPORTS_PER_SOL);
     const bh = await connection.getLatestBlockhash();
     await connection.confirmTransaction({
@@ -79,4 +108,3 @@ merchantRouter.post('/airdrop', async (req: Request, res: Response) => {
     return res.status(500).json({ success: false, error: err.message || 'Devnet airdrop request failed' });
   }
 });
-

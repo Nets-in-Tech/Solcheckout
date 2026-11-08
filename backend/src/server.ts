@@ -25,6 +25,15 @@ app.get('/api/health', (req, res) => {
   });
 });
 
+// Root API info
+app.get('/api', (req, res) => {
+  res.json({
+    status: 'ok',
+    name: config.merchantName,
+    merchantWallet: config.merchantWallet.toBase58(),
+  });
+});
+
 // Mount Routes
 app.use('/api/products', productsRouter);
 app.use('/api/orders', ordersRouter);
@@ -42,28 +51,23 @@ app.use((err: any, req: express.Request, res: express.Response, next: express.Ne
   res.status(500).json({ error: 'Internal Server Error', message: err.message });
 });
 
-async function startServer() {
-  try {
-    console.log('🚀 Initializing Solana Pay Checkout Backend...');
-    
-    // 1. Wait for PostgreSQL
-    await waitForDatabase();
-
-    // 2. Connect to Redis
-    await connectRedis();
-
-    // 3. Start Express HTTP server
-    app.listen(config.port, '0.0.0.0', () => {
-      console.log(`✨ Server running on http://0.0.0.0:${config.port}`);
-      console.log(`💳 Merchant Store: "${config.merchantName}"`);
-      console.log(`🔑 Merchant Public Key: ${config.merchantWallet.toBase58()}`);
-      console.log(`🌐 Solana Network: ${config.solanaNetwork} (${config.solanaRpcUrl})`);
-    });
-  } catch (err) {
-    console.error('Failed to start server:', err);
-    process.exit(1);
-  }
+// Start server locally when not running in Vercel Serverless environment
+if (process.env.VERCEL !== '1') {
+  (async () => {
+    try {
+      if (config.databaseUrl) {
+        waitForDatabase().catch((e) => console.warn('DB init notice:', e.message));
+      }
+      if (config.redisUrl) {
+        connectRedis().catch((e) => console.warn('Redis init notice:', e.message));
+      }
+      app.listen(config.port, '0.0.0.0', () => {
+        console.log(`✨ Server running on http://0.0.0.0:${config.port}`);
+      });
+    } catch (err: any) {
+      console.warn('Server start notice:', err.message);
+    }
+  })();
 }
 
-startServer();
-
+export default app;

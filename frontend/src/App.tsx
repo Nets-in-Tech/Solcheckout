@@ -23,6 +23,10 @@ export const App: React.FC = () => {
     try {
       const url = category === 'All' ? '/api/products' : `/api/products?category=${encodeURIComponent(category)}`;
       const res = await fetch(url);
+      if (!res.ok) {
+        console.warn(`Products endpoint returned status ${res.status}`);
+        return;
+      }
       const data = await res.json();
       if (data.success && data.data) {
         setProducts(data.data);
@@ -38,6 +42,10 @@ export const App: React.FC = () => {
   const fetchMerchantInfo = async () => {
     try {
       const res = await fetch('/api/merchant');
+      if (!res.ok) {
+        console.warn(`Merchant endpoint returned status ${res.status}`);
+        return;
+      }
       const data = await res.json();
       if (data.success && data.data) {
         setMerchantInfo(data.data);

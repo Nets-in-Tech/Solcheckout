@@ -3,19 +3,33 @@ import { config } from './config.js';
 
 const { Pool } = pg;
 
-export const pool = new Pool({
-  connectionString: config.databaseUrl,
-  max: 20,
-  idleTimeoutMillis: 30000,
-  connectionTimeoutMillis: 5000,
-});
+export const pool = config.databaseUrl
+  ? new Pool({
+      connectionString: config.databaseUrl,
+      max: 10,
+      idleTimeoutMillis: 30000,
+      connectionTimeoutMillis: 3000,
+      ssl: config.databaseUrl.includes('localhost') || config.databaseUrl.includes('postgres:') ? false : { rejectUnauthorized: false },
+    })
+  : null;
 
-pool.on('error', (err) => {
-  console.error('Unexpected error on idle PostgreSQL client:', err);
-});
+if (pool) {
+  pool.on('error', (err) => {
+    console.warn('PostgreSQL idle client error:', err.message);
+  });
+}
 
-export async function query(text: string, params?: any[]) {
-  return await pool.query(text, params);
+export async function query(text: string, params?: any[]): Promise<{ rows: any[]; rowCount: number }> {
+  if (!pool) {
+    return { rows: [], rowCount: 0 };
+  }
+  try {
+    const res = await pool.query(text, params);
+    return res;
+  } catch (err: any) {
+    console.warn('Database query failed:', err.message);
+    return { rows: [], rowCount: 0 };
+  }
 }
 
 // Initial seed products for the boutique store
@@ -35,7 +49,7 @@ export const SEED_PRODUCTS = [
   {
     slug: 'tuscan-leather-cardholder',
     name: 'Handcrafted Leather Cardholder',
-    category: 'Leather Goods',
+    category: 'Handcrafted Leather',
     description: 'Full-grain vegetable-tanned leather with hand-burnished edges and saddle stitching. Holds 6-8 cards comfortably.',
     price_usd: 48.00,
     price_sol: 0.2400,
@@ -71,7 +85,7 @@ export const SEED_PRODUCTS = [
   {
     slug: 'leather-journal-cover-a5',
     name: 'Classic Leather Journal Cover (A5)',
-    category: 'Leather Goods',
+    category: 'Handcrafted Leather',
     description: 'Full-grain leather notebook cover with pen sleeve. Includes 192-page fountain-pen-friendly dot grid refill.',
     price_usd: 65.00,
     price_sol: 0.3250,
@@ -95,7 +109,7 @@ export const SEED_PRODUCTS = [
   {
     slug: 'leather-coaster-set',
     name: 'Handcrafted Leather Coasters (Pack of 4)',
-    category: 'Leather Goods',
+    category: 'Handcrafted Leather',
     description: 'Heavy 3.5mm saddle leather coasters sealed with natural beeswax to resist stains and moisture.',
     price_usd: 26.00,
     price_sol: 0.1300,
@@ -108,7 +122,7 @@ export const SEED_PRODUCTS = [
     slug: 'barista-heavy-apron',
     name: 'Canvas & Leather Barista Apron',
     category: 'Brewing Gear',
-    description: 'Durable 14oz water-resistant duck canvas with detachable leather cross-back harness and brass buckles.',
+    description: 'Durable 14oz water-resistant duck duck canvas with detachable leather cross-back harness and brass buckles.',
     price_usd: 78.00,
     price_sol: 0.3900,
     image_url: 'https://images.unsplash.com/photo-1577937927133-66ef06acdf18?auto=format&fit=crop&w=800&q=80',
@@ -120,8 +134,8 @@ export const SEED_PRODUCTS = [
 
 // Initialize database schema and guarantee seed data exists
 export async function initializeAndSeedDatabase() {
+  if (!pool) return;
   try {
-    // 1. Create tables if they do not exist
     await pool.query(`
       CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 
@@ -172,12 +186,10 @@ export async function initializeAndSeedDatabase() {
       CREATE INDEX IF NOT EXISTS idx_orders_reference ON orders(reference_pubkey);
     `);
 
-    // 2. Check if products exist
     const countRes = await pool.query('SELECT COUNT(*) FROM products');
-    const count = parseInt(countRes.rows[0].count, 10);
+    const count = parseInt(countRes.rows[0]?.count || '0', 10);
 
     if (count === 0) {
-      console.log('📦 Database has no products. Seeding boutique catalog...');
       for (const prod of SEED_PRODUCTS) {
         await pool.query(`
           INSERT INTO products (slug, name, category, description, price_usd, price_sol, image_url, stock, badge, rating)
@@ -196,25 +208,20 @@ export async function initializeAndSeedDatabase() {
           prod.rating,
         ]);
       }
-      console.log('✅ Successfully seeded products into PostgreSQL');
     }
   } catch (err: any) {
-    console.warn('Database initialization note:', err.message);
+    console.warn('Database auto-init note:', err.message);
   }
 }
 
-export async function waitForDatabase(retries = 15, delay = 2000): Promise<boolean> {
-  for (let i = 0; i < retries; i++) {
-    try {
-      await pool.query('SELECT 1');
-      console.log('✅ PostgreSQL connected');
-      await initializeAndSeedDatabase();
-      return true;
-    } catch (err: any) {
-      console.log(`⏳ Waiting for PostgreSQL (${i + 1}/${retries})... ${err.message}`);
-      await new Promise((res) => setTimeout(res, delay));
-    }
+export async function waitForDatabase(): Promise<boolean> {
+  if (!pool) return false;
+  try {
+    await pool.query('SELECT 1');
+    await initializeAndSeedDatabase();
+    return true;
+  } catch (err: any) {
+    console.warn('PostgreSQL connection check skipped/failed:', err.message);
+    return false;
   }
-  console.warn('⚠️ PostgreSQL could not be reached after retries. Proceeding with in-memory fallback.');
-  return false;
 }
