@@ -23,7 +23,7 @@ export const config = {
   solanaNetwork: process.env.SOLANA_NETWORK || 'devnet',
   solanaRpcUrl: process.env.SOLANA_RPC_URL || 'https://api.devnet.solana.com',
   merchantName: process.env.MERCHANT_NAME || 'SolRoast & Craft Co.',
-  merchantWallet: merchantWalletPubkey,
+  merchantWallet: process.env.MERCHANT_WALLET,
   merchantIcon: process.env.MERCHANT_ICON || 'https://images.unsplash.com/photo-1559056199-641a0ac8b55e?auto=format&fit=crop&w=128&q=80',
   corsOrigin: process.env.CORS_ORIGIN || '*',
 };
