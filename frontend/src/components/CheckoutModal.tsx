@@ -154,40 +154,14 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({ isOpen, onClose, o
   };
 
   const handleBrowserWalletPay = async () => {
-    if (!currentOrder) return;
+    if (!currentOrder || !solanaPayUrl) return;
     setErrorMessage(null);
 
     try {
-      const solana = (window as any).solana;
-      if (!solana || !solana.isPhantom) {
-        throw new Error('Phantom wallet extension not detected in your browser.');
-      }
-
-      const resp = await solana.connect();
-      const buyerPubkey = resp.publicKey.toString();
-
-      const txRes = await fetch(`/api/solana-pay/tx?orderId=${currentOrder.id}`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ account: buyerPubkey }),
-      });
-
-      const txData = await txRes.json();
-      if (!txRes.ok || !txData.transaction) {
-        throw new Error(txData.error || 'Failed to prepare transaction');
-      }
-
-      const binaryString = window.atob(txData.transaction);
-      const bytes = new Uint8Array(binaryString.length);
-      for (let i = 0; i < binaryString.length; i++) {
-        bytes[i] = binaryString.charCodeAt(i);
-      }
-      const { Transaction } = await import('@solana/web3.js');
-      const transaction = Transaction.from(bytes);
-
-      await solana.signAndSendTransaction(transaction);
+      // Standard Solana Pay protocol: open the solana: payment URI directly
+      window.location.href = solanaPayUrl;
     } catch (err: any) {
-      setErrorMessage(err.message || 'Wallet payment was cancelled or failed.');
+      setErrorMessage(err.message || 'Could not launch wallet.');
     }
   };
 
