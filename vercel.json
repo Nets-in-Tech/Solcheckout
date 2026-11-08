@@ -4,7 +4,8 @@
         "backend": {
             "root": "backend",
             "framework": "express",
-            "entrypoint": "server.js"
+            "entrypoint": "server.js",
+            "installCommand": "npm install"
         },
         "frontend": {
             "root": "frontend",
