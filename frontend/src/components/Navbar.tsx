@@ -1,86 +1,59 @@
 import React from 'react';
-import { ShoppingBag, Store, ShieldCheck, Zap } from 'lucide-react';
+import { ShoppingBag, ClipboardList } from 'lucide-react';
 import { useCart } from '../context/CartContext.tsx';
 
 interface NavbarProps {
   onOpenMerchant: () => void;
-  merchantBalanceSol?: number;
 }
 
-export const Navbar: React.FC<NavbarProps> = ({ onOpenMerchant, merchantBalanceSol }) => {
+export const Navbar: React.FC<NavbarProps> = ({ onOpenMerchant }) => {
   const { totalItemCount, totalSol, setIsCartOpen } = useCart();
 
   return (
-    <header className="sticky top-0 z-30 bg-[#0d0e15]/90 backdrop-blur-md border-b border-[#232736]">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-20 flex items-center justify-between">
+    <header className="sticky top-0 z-30 bg-[#12131a] border-b border-[#222533]">
+      <div className="max-w-6xl mx-auto px-4 sm:px-6 h-18 py-4 flex items-center justify-between">
         
         {/* Brand */}
         <div className="flex items-center gap-3">
-          <div className="relative flex items-center justify-center w-11 h-11 rounded-xl bg-gradient-to-tr from-[#9945FF] to-[#14F195] p-0.5 shadow-lg shadow-purple-900/30">
-            <div className="w-full h-full bg-[#0d0e15] rounded-[10px] flex items-center justify-center">
-              <span className="font-bold text-lg bg-gradient-to-r from-[#9945FF] to-[#14F195] bg-clip-text text-transparent">
-                ◎
-              </span>
-            </div>
+          <div className="w-10 h-10 rounded-xl bg-[#1e2230] border border-[#2d3244] flex items-center justify-center text-amber-400 font-semibold text-lg">
+            ☕
           </div>
           <div>
-            <div className="flex items-center gap-2">
-              <span className="font-extrabold text-xl tracking-tight text-white">
-                SolRoast <span className="text-gray-400 font-light">&</span> Craft Co.
-              </span>
-              <span className="hidden sm:inline-flex items-center px-2 py-0.5 rounded text-[11px] font-semibold bg-purple-950/80 text-purple-300 border border-purple-800/60">
-                Solana Pay
-              </span>
-            </div>
+            <h1 className="font-bold text-lg text-white tracking-tight">
+              SolRoast & Craft Co.
+            </h1>
             <p className="text-xs text-gray-400 hidden sm:block">
               Artisan Coffee & Handcrafted Leather Goods
             </p>
           </div>
         </div>
 
-        {/* Center: Network Pill */}
-        <div className="hidden md:flex items-center gap-2 px-3 py-1.5 rounded-full bg-[#161922] border border-[#272b38] text-xs">
-          <span className="relative flex h-2 w-2">
-            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-            <span className="relative inline-flex rounded-full h-2 w-2 bg-[#14F195]"></span>
-          </span>
-          <span className="text-gray-300 font-medium">Solana Devnet</span>
-          <span className="text-gray-500">•</span>
-          <span className="text-emerald-400 font-mono text-[11px]">Instant Non-Custodial</span>
-        </div>
-
         {/* Right Actions */}
         <div className="flex items-center gap-3">
-          {/* Merchant Portal Button */}
+          {/* Store Orders / Admin Button */}
           <button
             onClick={onOpenMerchant}
-            className="flex items-center gap-2 px-3.5 py-2 rounded-xl bg-[#1a1d28] hover:bg-[#222634] text-gray-200 border border-[#2e3346] text-xs sm:text-sm font-medium transition-all duration-200 hover:border-purple-500/50"
-            title="Open Merchant Small Business Dashboard"
+            className="flex items-center gap-2 px-3.5 py-2 rounded-lg bg-[#1a1d29] hover:bg-[#222736] text-gray-300 border border-[#2b3042] text-xs sm:text-sm font-medium transition-colors"
           >
-            <Store className="w-4 h-4 text-purple-400" />
-            <span className="hidden sm:inline">Merchant Portal</span>
-            {merchantBalanceSol !== undefined && (
-              <span className="hidden lg:inline text-xs font-mono text-purple-300 bg-purple-950/60 px-2 py-0.5 rounded border border-purple-800/40">
-                {merchantBalanceSol.toFixed(3)} SOL
-              </span>
-            )}
+            <ClipboardList className="w-4 h-4 text-gray-400" />
+            <span className="hidden sm:inline">Store Orders</span>
           </button>
 
           {/* Cart Trigger */}
           <button
             onClick={() => setIsCartOpen(true)}
-            className="relative flex items-center gap-2 px-4 py-2 rounded-xl bg-gradient-to-r from-[#9945FF] to-[#7928CA] hover:from-[#8935ef] hover:to-[#6a20b0] text-white font-medium text-xs sm:text-sm shadow-lg shadow-purple-900/30 transition-all duration-200 transform hover:scale-[1.02] active:scale-[0.98]"
+            className="relative flex items-center gap-2 px-4 py-2 rounded-lg bg-[#272c3d] hover:bg-[#32384e] text-white font-medium text-xs sm:text-sm border border-[#3b4259] transition-colors"
           >
             <ShoppingBag className="w-4 h-4" />
-            <span className="font-semibold">Cart</span>
+            <span>Cart</span>
             {totalItemCount > 0 && (
-              <span className="flex items-center justify-center min-w-[20px] h-5 px-1 rounded-full bg-[#14F195] text-black font-bold text-xs">
+              <span className="flex items-center justify-center min-w-[20px] h-5 px-1 rounded-full bg-emerald-500 text-black font-bold text-xs">
                 {totalItemCount}
               </span>
             )}
             {totalSol > 0 && (
-              <span className="hidden md:inline font-mono text-xs text-purple-200 border-l border-purple-400/30 pl-2">
-                ◎ {totalSol.toFixed(4)}
+              <span className="hidden md:inline font-mono text-xs text-gray-300 border-l border-gray-600 pl-2">
+                {totalSol.toFixed(3)} SOL
               </span>
             )}
           </button>
@@ -90,4 +63,3 @@ export const Navbar: React.FC<NavbarProps> = ({ onOpenMerchant, merchantBalanceS
     </header>
   );
 };
-
