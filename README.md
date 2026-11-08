@@ -4,7 +4,7 @@
 
 **the checkout doesn't work yet even worse trying to solve it fast for the deadline got a lot complicated, and messed up🥺, in my opinion the tring to fix it fast runined it in the worse possible way.😭(genuine tears)**
 
-A high-performance, realistic, and beautifully designed e-commerce boutique dApp powered by **Solana Pay**, **React (Vite + Tailwind CSS)**, **PostgreSQL**, and **Redis** — entirely containerized with **Docker**.
+A high-performance, realistic, and beautifully designed e-commerce dApp powered by **Solana Pay**, **React (Vite + Tailwind CSS)**, **PostgreSQL**, and **Redis** — entirely containerized with **Docker**.
 
 ---
 
