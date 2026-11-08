@@ -3,11 +3,13 @@
   "services": {
     "backend": {
       "root": "backend",
-      "framework": "express"
+      "framework": "express",
+      "entrypoint": "server.js"
     },
     "frontend": {
       "root": "frontend",
       "framework": "vite",
+      "outputDirectory": "dist",
       "bindings": [
         {
           "type": "service",
