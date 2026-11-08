@@ -12,7 +12,7 @@ node_modules/
 !**/.env.example
 
 # Build outputs
-dist/
+frontend/dist/
 build/
 *.tsbuildinfo
 

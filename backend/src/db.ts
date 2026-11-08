@@ -9,7 +9,9 @@ export const pool = config.databaseUrl
       max: 10,
       idleTimeoutMillis: 30000,
       connectionTimeoutMillis: 3000,
-      ssl: config.databaseUrl.includes('localhost') || config.databaseUrl.includes('postgres:') ? false : { rejectUnauthorized: false },
+      ssl: config.databaseUrl.includes('localhost') || config.databaseUrl.includes('solanapay-postgres') || config.databaseUrl.includes('127.0.0.1')
+        ? false
+        : { rejectUnauthorized: false },
     })
   : null;
 
