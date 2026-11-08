@@ -9,7 +9,7 @@ import { v4 as uuidv4 } from 'uuid';
 export const ordersRouter = Router();
 
 // In-memory store fallback for serverless deployments without a configured database
-const inMemoryOrders = new Map<string, any>();
+export const inMemoryOrders = new Map<string, any>();
 
 // POST /api/orders - Create a new checkout order
 ordersRouter.post('/', async (req: Request, res: Response) => {

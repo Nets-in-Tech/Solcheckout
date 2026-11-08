@@ -15,30 +15,33 @@ app.use(cors({ origin: config.corsOrigin }));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// Healthcheck
-app.get('/api/health', (req, res) => {
+// Healthcheck & Root
+const healthHandler = (req: express.Request, res: express.Response) => {
   res.json({
     status: 'ok',
     timestamp: new Date().toISOString(),
     network: config.solanaNetwork,
     merchantWallet: config.merchantWallet.toBase58(),
+    merchantName: config.merchantName,
   });
-});
+};
+app.get('/api/health', healthHandler);
+app.get('/health', healthHandler);
+app.get('/api', healthHandler);
+app.get('/', healthHandler);
 
-// Root API info
-app.get('/api', (req, res) => {
-  res.json({
-    status: 'ok',
-    name: config.merchantName,
-    merchantWallet: config.merchantWallet.toBase58(),
-  });
-});
-
-// Mount Routes
+// Mount Routes (with and without /api prefix for robust reverse-proxy / service routing)
 app.use('/api/products', productsRouter);
+app.use('/products', productsRouter);
+
 app.use('/api/orders', ordersRouter);
+app.use('/orders', ordersRouter);
+
 app.use('/api/solana-pay', solanaPayRouter);
+app.use('/solana-pay', solanaPayRouter);
+
 app.use('/api/merchant', merchantRouter);
+app.use('/merchant', merchantRouter);
 
 // 404 handler
 app.use((req, res) => {

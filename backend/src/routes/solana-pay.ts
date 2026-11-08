@@ -1,5 +1,6 @@
 import { Router, Request, Response } from 'express';
-import { query } from '../db.js';
+import { query, pool } from '../db.js';
+import { inMemoryOrders } from './orders.js';
 import { config } from '../config.js';
 import { buildSolanaPayTransaction } from '../solana.js';
 import { PublicKey } from '@solana/web3.js';
@@ -45,12 +46,23 @@ solanaPayRouter.post('/tx', async (req: Request, res: Response) => {
     }
 
     // Fetch order
-    const orderRes = await query('SELECT * FROM orders WHERE id::text = $1 OR order_number = $1', [orderId]);
-    if (orderRes.rows.length === 0) {
-      return res.status(404).json({ error: 'Order not found' });
+    let order: any = null;
+    if (pool) {
+      try {
+        const orderRes = await query('SELECT * FROM orders WHERE id::text = $1 OR order_number = $1', [orderId]);
+        if (orderRes.rows.length > 0) {
+          order = orderRes.rows[0];
+        }
+      } catch {}
     }
 
-    const order = orderRes.rows[0];
+    if (!order) {
+      order = inMemoryOrders.get(orderId);
+    }
+
+    if (!order) {
+      return res.status(404).json({ error: 'Order not found' });
+    }
 
     if (order.status === 'confirmed') {
       return res.status(400).json({ error: 'Order already paid and confirmed' });

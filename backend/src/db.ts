@@ -25,7 +25,7 @@ export async function query(text: string, params?: any[]): Promise<{ rows: any[]
   }
   try {
     const res = await pool.query(text, params);
-    return res;
+    return { rows: res.rows, rowCount: res.rowCount ?? 0 };
   } catch (err: any) {
     console.warn('Database query failed:', err.message);
     return { rows: [], rowCount: 0 };

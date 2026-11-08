@@ -1,19 +1,24 @@
 import { createClient } from 'redis';
 import { config } from './config.js';
 
-export const redisClient = createClient({
-  url: config.redisUrl,
-});
+export const redisClient = config.redisUrl
+  ? createClient({
+      url: config.redisUrl,
+    })
+  : null;
 
-redisClient.on('error', (err) => {
-  console.error('Redis Client Error:', err);
-});
+if (redisClient) {
+  redisClient.on('error', (err) => {
+    console.warn('Redis Client Error:', err.message);
+  });
 
-redisClient.on('connect', () => {
-  console.log('✅ Redis connected successfully');
-});
+  redisClient.on('connect', () => {
+    console.log('✅ Redis connected successfully');
+  });
+}
 
-export async function connectRedis(retries = 15, delay = 2000): Promise<boolean> {
+export async function connectRedis(retries = 5, delay = 1000): Promise<boolean> {
+  if (!redisClient) return false;
   for (let i = 0; i < retries; i++) {
     try {
       if (!redisClient.isOpen) {
@@ -33,7 +38,7 @@ export async function connectRedis(retries = 15, delay = 2000): Promise<boolean>
 // Redis Helper functions
 export async function getCached<T>(key: string): Promise<T | null> {
   try {
-    if (!redisClient.isOpen) return null;
+    if (!redisClient || !redisClient.isOpen) return null;
     const data = await redisClient.get(key);
     return data ? JSON.parse(data) : null;
   } catch (err) {
@@ -44,7 +49,7 @@ export async function getCached<T>(key: string): Promise<T | null> {
 
 export async function setCached(key: string, value: any, ttlSeconds = 300): Promise<void> {
   try {
-    if (!redisClient.isOpen) return;
+    if (!redisClient || !redisClient.isOpen) return;
     await redisClient.set(key, JSON.stringify(value), { EX: ttlSeconds });
   } catch (err) {
     console.warn(`Redis set error for key ${key}:`, err);
@@ -53,7 +58,7 @@ export async function setCached(key: string, value: any, ttlSeconds = 300): Prom
 
 export async function deleteCached(key: string): Promise<void> {
   try {
-    if (!redisClient.isOpen) return;
+    if (!redisClient || !redisClient.isOpen) return;
     await redisClient.del(key);
   } catch (err) {
     console.warn(`Redis del error for key ${key}:`, err);
@@ -63,7 +68,7 @@ export async function deleteCached(key: string): Promise<void> {
 // Atomic lock helper for order verification to prevent double-fulfillment
 export async function acquireLock(key: string, ttlSeconds = 10): Promise<boolean> {
   try {
-    if (!redisClient.isOpen) return true;
+    if (!redisClient || !redisClient.isOpen) return true;
     const result = await redisClient.set(`lock:${key}`, 'locked', {
       NX: true,
       EX: ttlSeconds,
@@ -76,8 +81,7 @@ export async function acquireLock(key: string, ttlSeconds = 10): Promise<boolean
 
 export async function releaseLock(key: string): Promise<void> {
   try {
-    if (!redisClient.isOpen) return;
+    if (!redisClient || !redisClient.isOpen) return;
     await redisClient.del(`lock:${key}`);
   } catch {}
 }
-
